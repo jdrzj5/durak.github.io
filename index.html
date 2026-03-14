@@ -3,217 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dureń – Gracz vs Bot (pełna wersja z wieloma kartami)</title>
+    <title>Dureń – Gracz vs Bot (pełne zasady Podkidnoy)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
         body {
-            margin: 0;
-            padding: 0;
-            background: #0a3d1f;
-            color: #fff;
+            margin: 0; padding: 0;
+            background: #0a3d1f; color: #fff;
             font-family: 'Press Start 2P', cursive;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            flex-direction: column;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; flex-direction: column;
         }
         
         #game {
-            width: 980px;
-            background: #0a3d1f;
-            border: 8px solid #ffcc00;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 30px #ffcc00;
+            width: 980px; background: #0a3d1f;
+            border: 8px solid #ffcc00; border-radius: 15px;
+            padding: 20px; box-shadow: 0 0 30px #ffcc00;
         }
         
         header { text-align: center; margin-bottom: 15px; }
         h1 { font-size: 28px; color: #ffcc00; text-shadow: 3px 3px #000; }
         
         .area {
-            display: flex;
-            justify-content: space-between;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 10px;
+            display: flex; justify-content: space-between;
+            margin: 15px 0; padding: 10px;
+            background: rgba(0,0,0,0.4); border-radius: 10px;
         }
         
         .card {
-            width: 70px;
-            height: 100px;
-            background: white;
-            border: 3px solid #222;
-            border-radius: 8px;
-            position: relative;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin: 5px;
+            width: 70px; height: 100px; background: white;
+            border: 3px solid #222; border-radius: 8px;
+            position: relative; display: inline-flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            font-size: 24px; margin: 5px;
             box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
-            cursor: pointer;
-            transition: all 0.3s ease;
+            cursor: pointer; transition: all 0.3s ease;
             user-select: none;
         }
         
         .card:hover { transform: scale(1.12) rotate(3deg); }
-        .card.red { color: #c00; }
-        .card.black { color: #111; }
+        .card.red { color: #c00; } .card.black { color: #111; }
         
-        .card .rank {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            font-size: 18px;
-            font-weight: bold;
-        }
+        .card .rank { position: absolute; top: 5px; left: 5px; font-size: 18px; font-weight: bold; }
         .card .suit { font-size: 42px; }
-        .card .rank-bottom {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            transform: rotate(180deg);
-        }
+        .card .rank-bottom { position: absolute; bottom: 5px; right: 5px; font-size: 18px; font-weight: bold; transform: rotate(180deg); }
         
         .card-back {
-            width: 70px;
-            height: 100px;
+            width: 70px; height: 100px;
             background: linear-gradient(45deg, #222, #444);
-            border: 3px solid #ffcc00;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffcc00;
-            font-size: 30px;
+            border: 3px solid #ffcc00; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: #ffcc00; font-size: 30px;
             box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
         }
         
         #table {
-            background: #1a5c2f;
-            padding: 20px;
-            border-radius: 12px;
-            min-height: 220px;
+            background: #1a5c2f; padding: 20px;
+            border-radius: 12px; min-height: 240px;
         }
         
         #table-pairs {
-            display: flex;
-            gap: 25px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 15px 0;
+            display: flex; gap: 25px; flex-wrap: wrap;
+            justify-content: center; margin: 15px 0;
         }
         
         .pair {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.1);
-            padding: 8px;
-            border-radius: 10px;
-            border: 2px solid transparent;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.1); padding: 8px;
+            border-radius: 10px; border: 2px solid transparent;
             transition: all 0.3s;
         }
         
-        .pair.selected {
-            border-color: #ffcc00;
-            box-shadow: 0 0 15px #ffcc00;
-        }
+        .pair.selected { border-color: #ffcc00; box-shadow: 0 0 15px #ffcc00; }
         
-        .pair-label {
-            font-size: 12px;
-            color: #ffcc00;
-        }
+        .pair-label { font-size: 12px; color: #ffcc00; }
         
         #player-hand {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 15px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 12px;
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 8px; margin-top: 10px; padding: 15px;
+            background: rgba(0,0,0,0.5); border-radius: 12px;
         }
         
         .info { font-size: 16px; text-align: center; margin: 10px 0; }
         
         button {
-            background: #ffcc00;
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 8px;
-            border-radius: 6px;
-            box-shadow: 3px 3px #000;
+            background: #ffcc00; color: #000; border: none;
+            padding: 12px 24px; font-family: 'Press Start 2P', cursive;
+            font-size: 16px; cursor: pointer; margin: 8px;
+            border-radius: 6px; box-shadow: 3px 3px #000;
         }
         
         button:hover { background: #ffdd33; }
         
         #status {
-            font-size: 20px;
-            color: #ffcc00;
-            text-align: center;
-            min-height: 30px;
-            text-shadow: 2px 2px #000;
-            margin: 10px 0;
+            font-size: 20px; color: #ffcc00;
+            text-align: center; min-height: 30px;
+            text-shadow: 2px 2px #000; margin: 10px 0;
         }
         
         .win {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            font-size: 42px;
-            color: #ffcc00;
-            z-index: 100;
-        }
-        
-        .throw-info {
-            font-size: 14px;
-            color: #ff0;
-            margin-top: 5px;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; font-size: 42px; color: #ffcc00; z-index: 100;
         }
     </style>
 </head>
 <body>
     <div id="game">
         <header>
-            <h1>♦ DUREŃ ♦</h1>
-            <p>Pełna wersja – wiele kart na stole + dorzucanie</p>
+            <h1>♦ DUREŃ (PODKIDNOY) ♦</h1>
+            <p>Pełne zasady – atakujący może dorzucać po udanej obronie</p>
         </header>
 
         <div class="area">
-            <div id="trump-area">
-                <span>ATUT:</span>
-                <div id="trump-card" class="card"></div>
-            </div>
-            <div id="deck-area">
-                <span>TALIA: <span id="deck-count">24</span></span>
-                <div class="card-back">🂠</div>
-            </div>
+            <div id="trump-area"><span>ATUT:</span><div id="trump-card" class="card"></div></div>
+            <div id="deck-area"><span>TALIA: <span id="deck-count">24</span></span><div class="card-back">🂠</div></div>
         </div>
 
-        <div class="info">
-            <strong>BOT ma <span id="bot-count">6</span> kart</strong>
-        </div>
-        <div style="text-align:center; margin:10px;">
-            <div id="bot-hand" style="display:flex; justify-content:center; gap:5px;"></div>
-        </div>
+        <div class="info"><strong>BOT ma <span id="bot-count">6</span> kart</strong></div>
+        <div style="text-align:center; margin:10px;"><div id="bot-hand" style="display:flex; justify-content:center; gap:5px;"></div></div>
 
         <div id="table">
             <div id="status">Twoja tura – atakuj!</div>
@@ -235,23 +145,17 @@
         const suits = ['♥','♦','♣','♠'];
         const rankValues = {'6':0,'7':1,'8':2,'9':3,'10':4,'J':5,'Q':6,'K':7,'A':8};
 
-        let deck = [];
-        let playerHand = [];
-        let botHand = [];
-        let trumpCard = null;
-        let trumpSuit = '';
-        let tablePairs = [];           // [{attack: card, defense: card|null}]
+        let deck = [], playerHand = [], botHand = [];
+        let trumpCard = null, trumpSuit = '';
+        let tablePairs = []; // [{attack, defense: null or card}]
         let isPlayerAttacker = true;
         let gameOver = false;
         let selectedPairIndex = -1;
+        let maxAttackCards = 6;
 
         function createDeck() {
             deck = [];
-            for (let suit of suits) {
-                for (let rank of ranks) {
-                    deck.push({rank: rank, suit: suit});
-                }
-            }
+            for (let suit of suits) for (let rank of ranks) deck.push({rank, suit});
             shuffle(deck);
             playerHand = deck.splice(0, 6);
             botHand = deck.splice(0, 6);
@@ -261,102 +165,89 @@
         }
 
         function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+            for (let i = array.length-1; i>0; i--) {
+                const j = Math.floor(Math.random()*(i+1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
         function canBeat(attack, defense) {
             if (!attack || !defense) return false;
-            if (attack.suit === defense.suit) {
-                return rankValues[defense.rank] > rankValues[attack.rank];
-            }
-            if (defense.suit === trumpSuit) {
-                return attack.suit !== trumpSuit || rankValues[defense.rank] > rankValues[attack.rank];
-            }
-            return false;
+            if (attack.suit === defense.suit) return rankValues[defense.rank] > rankValues[attack.rank];
+            return defense.suit === trumpSuit && (attack.suit !== trumpSuit || rankValues[defense.rank] > rankValues[attack.rank]);
         }
 
         function getCardHTML(card, isBack = false) {
             if (isBack) return `<div class="card-back">🂠</div>`;
-            const color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
-            return `
-                <div class="card ${color}">
-                    <div class="rank">${card.rank}</div>
-                    <div class="suit">${card.suit}</div>
-                    <div class="rank-bottom">${card.rank}</div>
-                </div>
-            `;
+            const color = (card.suit==='♥'||card.suit==='♦') ? 'red' : 'black';
+            return `<div class="card ${color}"><div class="rank">${card.rank}</div><div class="suit">${card.suit}</div><div class="rank-bottom">${card.rank}</div></div>`;
         }
 
         function render() {
             if (gameOver) return;
 
-            // Trump + talia
             document.getElementById('trump-card').innerHTML = getCardHTML(trumpCard);
             document.getElementById('deck-count').textContent = deck.length;
             document.getElementById('bot-count').textContent = botHand.length;
 
-            // Bot ręka (backi)
-            const botHandDiv = document.getElementById('bot-hand');
-            botHandDiv.innerHTML = '';
-            for (let i = 0; i < Math.min(botHand.length, 6); i++) {
-                botHandDiv.innerHTML += getCardHTML(null, true);
-            }
+            // bot backi
+            const botDiv = document.getElementById('bot-hand');
+            botDiv.innerHTML = '';
+            for (let i = 0; i < Math.min(botHand.length,6); i++) botDiv.innerHTML += getCardHTML(null,true);
 
-            // Ręka gracza
-            const playerHandDiv = document.getElementById('player-hand');
-            playerHandDiv.innerHTML = '';
-            playerHand.forEach((card, index) => {
-                const cardEl = document.createElement('div');
-                cardEl.innerHTML = getCardHTML(card);
-                cardEl.onclick = () => handlePlayerCardClick(index);
-                playerHandDiv.appendChild(cardEl);
+            // ręka gracza
+            const ph = document.getElementById('player-hand');
+            ph.innerHTML = '';
+            playerHand.forEach((c,i) => {
+                const el = document.createElement('div');
+                el.innerHTML = getCardHTML(c);
+                el.onclick = () => handlePlayerCardClick(i);
+                ph.appendChild(el);
             });
 
-            // Stół – wszystkie pary
+            // stół
             const pairsDiv = document.getElementById('table-pairs');
             pairsDiv.innerHTML = '';
-            tablePairs.forEach((pair, i) => {
-                const pairDiv = document.createElement('div');
-                pairDiv.className = `pair ${selectedPairIndex === i ? 'selected' : ''}`;
-                pairDiv.innerHTML = `
-                    <div class="pair-label">ATAK</div>
-                    ${getCardHTML(pair.attack)}
-                    <div class="pair-label">OBRONA</div>
-                    ${pair.defense ? getCardHTML(pair.defense) : '<div style="width:70px;height:100px;border:2px dashed #ffcc00;border-radius:8px;"></div>'}
+            tablePairs.forEach((pair,i) => {
+                const p = document.createElement('div');
+                p.className = `pair ${selectedPairIndex===i?'selected':''}`;
+                p.innerHTML = `
+                    <div class="pair-label">ATAK</div>${getCardHTML(pair.attack)}
+                    <div class="pair-label">OBRONA</div>${pair.defense ? getCardHTML(pair.defense) : '<div style="width:70px;height:100px;border:2px dashed #ffcc00;border-radius:8px;"></div>'}
                 `;
-                if (!isPlayerAttacker && pair.defense === null) {
-                    pairDiv.onclick = () => selectPair(i);
-                }
-                pairsDiv.appendChild(pairDiv);
+                if (!isPlayerAttacker && !pair.defense) p.onclick = () => { selectedPairIndex = i; render(); };
+                pairsDiv.appendChild(p);
             });
 
-            updateStatusAndButtons();
+            updateButtonsAndStatus();
         }
 
-        function updateStatusAndButtons() {
+        function updateButtonsAndStatus() {
             const status = document.getElementById('status');
             const btnDiv = document.getElementById('action-buttons');
             btnDiv.innerHTML = '';
 
+            const allBeaten = tablePairs.length > 0 && tablePairs.every(p => p.defense !== null);
+            const canAdd = tablePairs.length < maxAttackCards && tablePairs.length < (isPlayerAttacker ? botHand.length : playerHand.length);
+
             if (isPlayerAttacker) {
                 status.textContent = tablePairs.length === 0 
-                    ? 'Twoja tura – zagraj pierwszą kartę ataku' 
-                    : 'Dodaj kolejne karty (te same rangi) lub przekaż do obrony';
+                    ? 'Zagraj pierwszą kartę ataku' 
+                    : allBeaten 
+                        ? 'Bot się wybronił! Możesz dorzucić jeszcze figury lub zakończyć atak' 
+                        : 'Możesz dorzucić karty o tych samych rangach lub przekazać do obrony';
                 
+                // przycisk zakończenia ataku (zawsze dostępny gdy coś leży)
                 if (tablePairs.length > 0) {
-                    const btn = document.createElement('button');
-                    btn.textContent = 'PRZEKAŻ DO OBRONY BOTA';
-                    btn.onclick = startBotDefense;
-                    btnDiv.appendChild(btn);
+                    const endBtn = document.createElement('button');
+                    endBtn.textContent = 'ZAKOŃCZ ATAK';
+                    endBtn.onclick = endPlayerAttack;
+                    btnDiv.appendChild(endBtn);
                 }
             } else {
                 // gracz broni
-                const openAttacks = tablePairs.filter(p => p.defense === null).length;
-                status.textContent = openAttacks > 0 
-                    ? `Bot zaatakował! Wybierz kartę ataku i potem swoją kartę do obrony (${openAttacks} do zbicia)`
+                status.textContent = tablePairs.some(p => !p.defense) 
+                    ? `Bot atakuje! Wybierz atak na stole → potem swoją kartę obrony`
                     : 'Wszystko zbite – czekam na decyzję bota...';
                 
                 const takeBtn = document.createElement('button');
@@ -371,19 +262,21 @@
             const card = playerHand[index];
 
             if (isPlayerAttacker) {
-                // dodawanie do ataku
-                const currentRanks = new Set(tablePairs.map(p => p.attack.rank));
-                if (tablePairs.length === 0 || currentRanks.has(card.rank)) {
-                    tablePairs.push({attack: card, defense: null});
-                    playerHand.splice(index, 1);
-                    render();
+                // atak gracza – pierwsza lub dorzutka
+                const existingRanks = new Set(tablePairs.map(p => p.attack.rank));
+                if (tablePairs.length === 0 || existingRanks.has(card.rank)) {
+                    if (tablePairs.length < maxAttackCards) {
+                        tablePairs.push({attack: card, defense: null});
+                        playerHand.splice(index, 1);
+                        render();
+                    }
                 } else {
-                    alert("❌ Możesz dołożyć tylko karty o rangach już leżących na stole!");
+                    alert("❌ Tylko karty o rangach już leżących na stole!");
                 }
             } else {
-                // gracz broni – musi mieć wybraną parę
+                // obrona gracza
                 if (selectedPairIndex === -1) {
-                    alert("Najpierw kliknij kartę ataku na stole, którą chcesz zbić!");
+                    alert("Kliknij najpierw kartę ATAKU na stole, którą chcesz zbić!");
                     return;
                 }
                 const pair = tablePairs[selectedPairIndex];
@@ -393,136 +286,183 @@
                     selectedPairIndex = -1;
                     render();
 
-                    // sprawdzamy czy wszystko zbite
-                    if (tablePairs.every(p => p.defense !== null)) {
-                        setTimeout(botDecideAfterDefense, 800);
+                    // jeśli wszystko zbite – bot może kontynuować atak
+                    if (tablePairs.every(p => p.defense)) {
+                        setTimeout(botContinueAfterDefense, 800);
                     }
                 } else {
-                    alert("❌ Ta karta nie bije! Wybierz inną.");
+                    alert("❌ Ta karta nie bije ataku!");
                 }
             }
         }
 
-        function selectPair(index) {
-            selectedPairIndex = index;
+        function endPlayerAttack() {
+            // atakujący (gracz) kończy – odrzucamy stół i tura przechodzi na bota
+            discardTable();
+            isPlayerAttacker = false;
             render();
+            setTimeout(botStartAttack, 700);
         }
 
-        function startBotDefense() {
-            if (tablePairs.length === 0) return;
+        function botDefend() {
             document.getElementById('status').textContent = 'Bot się broni...';
-            botDefendStep(0);
+            setTimeout(() => botDefendStep(0), 600);
         }
 
         function botDefendStep(step) {
-            const openPairs = tablePairs.filter(p => p.defense === null);
-            if (openPairs.length === 0) {
-                // wszystko zbite
-                setTimeout(() => {
-                    discardTable();
-                    isPlayerAttacker = false; // bot teraz atakuje
-                    render();
-                    setTimeout(botStartAttack, 800);
-                }, 600);
-                return;
+            const open = tablePairs.filter(p => !p.defense);
+            if (open.length === 0) {
+                render();
+                return; // wszystko zbite – gracz może kontynuować
             }
 
-            // bot próbuje zbić najsłabszą możliwą
             let candidates = [];
             for (let i = 0; i < tablePairs.length; i++) {
-                if (tablePairs[i].defense === null) {
-                    const possible = botHand.filter(c => canBeat(tablePairs[i].attack, c));
-                    if (possible.length > 0) candidates.push({pairIndex: i, cards: possible});
+                if (!tablePairs[i].defense) {
+                    const poss = botHand.filter(c => canBeat(tablePairs[i].attack, c));
+                    if (poss.length) candidates.push({idx: i, cards: poss});
                 }
             }
 
             if (candidates.length === 0) {
-                // nie może zbić – bierze wszystko
+                // bot nie może – bierze wszystko
                 botTakeCards();
                 return;
             }
 
-            // wybiera najtańszą kartę do najsłabszego ataku
-            candidates.sort((a, b) => {
-                return rankValues[a.cards[0].rank] - rankValues[b.cards[0].rank];
-            });
+            // najsłabsza możliwa obrona
+            candidates.sort((a,b) => rankValues[a.cards[0].rank] - rankValues[b.cards[0].rank]);
             const best = candidates[0];
             const beater = best.cards[0];
-            const pairIdx = best.pairIndex;
-
-            const realIndex = tablePairs.findIndex(p => p === tablePairs[pairIdx]);
-            tablePairs[realIndex].defense = beater;
+            tablePairs[best.idx].defense = beater;
             botHand.splice(botHand.indexOf(beater), 1);
 
             render();
-
-            setTimeout(() => botDefendStep(step + 1), 700);
+            setTimeout(() => botDefendStep(step+1), 650);
         }
 
         function botTakeCards() {
             document.getElementById('status').textContent = 'Bot nie może bić – bierze karty!';
             
-            // wszystkie karty na stole do bota
-            tablePairs.forEach(pair => {
-                botHand.push(pair.attack);
-                if (pair.defense) botHand.push(pair.defense);
+            tablePairs.forEach(p => {
+                botHand.push(p.attack);
+                if (p.defense) botHand.push(p.defense);
             });
 
-            // dorzucanie przez gracza (automatyczne – wszystkie możliwe rangi)
+            // dorzutka od gracza (atakującego)
             const throwRanks = new Set(tablePairs.map(p => p.attack.rank));
-            for (let i = playerHand.length - 1; i >= 0; i--) {
+            for (let i = playerHand.length-1; i >= 0; i--) {
                 if (throwRanks.has(playerHand[i].rank)) {
                     botHand.push(playerHand[i]);
-                    playerHand.splice(i, 1);
+                    playerHand.splice(i,1);
                 }
             }
 
             clearTable();
-            isPlayerAttacker = false; // bot teraz atakuje
-            render();
-            setTimeout(botStartAttack, 900);
-        }
-
-        function playerTakeCards() {
-            if (tablePairs.length === 0) return;
-            
-            document.getElementById('status').textContent = 'Bierzesz karty...';
-            
-            // wszystkie karty do gracza
-            tablePairs.forEach(pair => {
-                playerHand.push(pair.attack);
-                if (pair.defense) playerHand.push(pair.defense);
-            });
-
-            // dorzucanie przez bota (automatyczne)
-            const throwRanks = new Set(tablePairs.map(p => p.attack.rank));
-            for (let i = botHand.length - 1; i >= 0; i--) {
-                if (throwRanks.has(botHand[i].rank)) {
-                    playerHand.push(botHand[i]);
-                    botHand.splice(i, 1);
-                }
-            }
-
-            clearTable();
-            isPlayerAttacker = true; // gracz teraz atakuje
+            isPlayerAttacker = false; // po wzięciu tura przechodzi na bota jako atakującego? Nie – w 2-osobowym po wzięciu atakujący kontynuuje? 
+            // według zasad: po wzięciu obrońca traci turę, atakujący staje się obrońcą? W prostym 2-osobowym – po wzięciu karty atakujący kończy atak i obrońca staje się atakującym
+            isPlayerAttacker = true; // gracz znowu atakuje (standard w większości implementacji 2-osobowych)
             render();
             checkWin();
         }
 
-        function botDecideAfterDefense() {
-            // po udanej obronie bota – gracz może kontynuować atak lub zakończyć
-            document.getElementById('status').textContent = 'Wszystko zbite! Możesz dodać więcej lub zakończyć atak';
-            const btnDiv = document.getElementById('action-buttons');
-            btnDiv.innerHTML = `
-                <button onclick="endAttack()">ZAKOŃCZ ATAK (przekaż turę botowi)</button>
-            `;
+        function playerTakeCards() {
+            document.getElementById('status').textContent = 'Bierzesz karty...';
+            
+            tablePairs.forEach(p => {
+                playerHand.push(p.attack);
+                if (p.defense) playerHand.push(p.defense);
+            });
+
+            const throwRanks = new Set(tablePairs.map(p => p.attack.rank));
+            for (let i = botHand.length-1; i >= 0; i--) {
+                if (throwRanks.has(botHand[i].rank)) {
+                    playerHand.push(botHand[i]);
+                    botHand.splice(i,1);
+                }
+            }
+
+            clearTable();
+            isPlayerAttacker = false; // po wzięciu przez gracza – bot zaczyna atak
+            render();
+            setTimeout(botStartAttack, 800);
+            checkWin();
         }
 
-        function endAttack() {
-            discardTable();
-            isPlayerAttacker = false;
-            render();
-            setTimeout(botStartAttack, 600);
+        function botContinueAfterDefense() {
+            // bot (atakujący) może dorzucić jeszcze kilka figur po udanej obronie gracza
+            const currentRanks = new Set(tablePairs.map(p => p.attack.rank));
+            let toAdd = Math.min(2, botHand.length, maxAttackCards - tablePairs.length);
+            
+            function addBotCard() {
+                if (toAdd <= 0) {
+                    // bot kończy atak
+                    setTimeout(() => {
+                        discardTable();
+                        isPlayerAttacker = true; // gracz teraz atakuje
+                        render();
+                    }, 800);
+                    return;
+                }
+
+                let possible = botHand.filter(c => currentRanks.has(c.rank));
+                if (possible.length === 0) possible = botHand; // gdyby coś poszło nie tak
+
+                possible.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
+                const chosen = possible[0];
+                const idx = botHand.indexOf(chosen);
+
+                tablePairs.push({attack: chosen, defense: null});
+                botHand.splice(idx, 1);
+
+                render();
+                toAdd--;
+                setTimeout(addBotCard, 750);
+            }
+            
+            if (toAdd > 0) {
+                document.getElementById('status').textContent = 'Bot dorzuca jeszcze karty...';
+                addBotCard();
+            } else {
+                discardTable();
+                isPlayerAttacker = true;
+                render();
+            }
+        }
+
+        function botStartAttack() {
+            if (gameOver) return;
+            document.getElementById('status').textContent = 'Bot atakuje...';
+
+            const currentRanks = new Set();
+            let added = 0;
+            const maxAdd = Math.min(4, botHand.length, playerHand.length || 6);
+
+            function addOneBotAttack() {
+                if (added >= maxAdd || botHand.length === 0) {
+                    isPlayerAttacker = false;
+                    render();
+                    setTimeout(botDefend, 600);
+                    return;
+                }
+
+                let possible = botHand.filter(c => tablePairs.length === 0 || currentRanks.has(c.rank));
+                if (possible.length === 0) possible = botHand;
+
+                possible.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
+                const chosen = possible[0];
+                const idx = botHand.indexOf(chosen);
+
+                tablePairs.push({attack: chosen, defense: null});
+                botHand.splice(idx, 1);
+                currentRanks.add(chosen.rank);
+
+                render();
+                added++;
+                setTimeout(addOneBotAttack, 700);
+            }
+
+            addOneBotAttack();
         }
 
         function discardTable() {
@@ -533,57 +473,11 @@
             tablePairs = [];
         }
 
-        function botStartAttack() {
-            if (gameOver) return;
-            document.getElementById('status').textContent = 'Bot atakuje...';
-
-            // bot dodaje 2-4 karty (z opóźnieniem)
-            const maxToAdd = Math.min(4, botHand.length, 6 - playerHand.length);
-            let added = 0;
-
-            function addOne() {
-                if (added >= maxToAdd || botHand.length === 0) {
-                    render();
-                    setTimeout(() => {
-                        // po dodaniu – gracz broni
-                        isPlayerAttacker = false;
-                        render();
-                    }, 400);
-                    return;
-                }
-
-                const currentRanks = new Set(tablePairs.map(p => p.attack.rank));
-                let possible = botHand.filter(c => tablePairs.length === 0 || currentRanks.has(c.rank));
-
-                if (possible.length === 0) {
-                    // pierwsza karta dowolna
-                    possible = botHand;
-                }
-
-                if (possible.length === 0) return;
-
-                // wybiera najsłabszą
-                possible.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
-                const chosen = possible[0];
-                const idx = botHand.indexOf(chosen);
-
-                tablePairs.push({attack: chosen, defense: null});
-                botHand.splice(idx, 1);
-
-                render();
-                added++;
-                setTimeout(addOne, 650);
-            }
-
-            addOne();
-        }
-
         function performDraw() {
-            const attacker = isPlayerAttacker ? playerHand : botHand;
-            const defender = isPlayerAttacker ? botHand : playerHand;
-            
-            if (deck.length > 0 && attacker.length < 6) attacker.push(deck.shift());
-            if (deck.length > 0 && defender.length < 6) defender.push(deck.shift());
+            const attackerHand = isPlayerAttacker ? playerHand : botHand;
+            const defenderHand = isPlayerAttacker ? botHand : playerHand;
+            if (deck.length && attackerHand.length < 6) attackerHand.push(deck.shift());
+            if (deck.length && defenderHand.length < 6) defenderHand.push(deck.shift());
         }
 
         function checkWin() {
