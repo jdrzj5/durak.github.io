@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dureń – Podkidnoy (teraz 100% symetrycznie)</title>
+    <title>Dureń)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -102,8 +102,8 @@
 <body>
     <div id="game">
         <header>
-            <h1>♦ DUREŃ (PODKIDNOY) ♦</h1>
-            <p>Bot atakuje dokładnie jak Ty – jedną kartą i czeka na Twoją decyzję</p>
+            <h1>♦ DUREŃ ♦</h1>
+            <p>Dureń</p>
         </header>
 
         <div class="area">
@@ -358,9 +358,12 @@
             });
 
             clearTable();
-            render();
+            isPlayerAttacker = true;
+            
             performDraw();
+            render();
             checkWin();
+
         }
 
         function botTryContinueAttack() {
@@ -402,11 +405,16 @@
                 if (p.defense) playerHand.push(p.defense);
             });
 
-            clearTable();
-            isPlayerAttacker = false;
-            render();
-            performDraw();
-            checkWin();
+        clearTable();
+        isPlayerAttacker = false;
+        
+        performDraw();
+        render();
+        checkWin();
+        
+        // uruchom turę bota
+        setTimeout(botStartAttack, 600);
+
         }
 
         function clearTable() { tablePairs = []; }
