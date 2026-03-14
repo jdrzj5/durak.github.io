@@ -1,185 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>Mini Kings</title>
-
-<style>
-
-body{
-background:#1a1a1a;
-color:white;
-font-family:serif;
-text-align:center;
-}
-
-#panel{
-margin:auto;
-width:600px;
-padding:20px;
-background:#2b2b2b;
-border:3px solid gold;
-}
-
-button{
-padding:10px;
-margin:5px;
-background:#444;
-color:white;
-border:1px solid gold;
-cursor:pointer;
-}
-
-button:hover{
-background:#666;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <title>Mini-Dynasty Sim</title>
+    <style>
+        body { background: #2c2116; color: #e0d0b0; font-family: 'Georgia', serif; display: flex; justify-content: center; padding: 20px; }
+        #game-container { width: 600px; background: #3d2f1f; border: 4px double #8b7355; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        h1, h2 { text-align: center; color: #d4af37; text-transform: uppercase; letter-spacing: 2px; }
+        .stats { display: flex; justify-content: space-around; background: #1a140e; padding: 10px; border: 1px solid #8b7355; margin-bottom: 20px; }
+        .stat-box { text-align: center; }
+        .stat-val { display: block; font-weight: bold; color: #fff; }
+        #event-window { background: #4e3d2a; border: 2px solid #d4af37; padding: 15px; margin-top: 20px; min-height: 150px; }
+        button { background: #8b0000; color: white; border: 1px solid #d4af37; padding: 8px 15px; cursor: pointer; margin: 5px; width: 100%; font-family: 'Georgia', serif; }
+        button:hover { background: #a50000; }
+        #log { font-size: 0.9em; height: 100px; overflow-y: auto; background: #1a140e; padding: 10px; margin-top: 10px; border: 1px solid #8b7355; }
+    </style>
 </head>
-
 <body>
 
-<h1>Dynasty Simulator</h1>
+<div id="game-container">
+    <h1>Dynasty Manager</h1>
+    
+    <div class="stats">
+        <div class="stat-box">Prestiż<span id="prestige" class="stat-val">0</span></div>
+        <div class="stat-box">Złoto<span id="gold" class="stat-val">100</span></div>
+        <div class="stat-box">Pobożność<span id="piety" class="stat-val">0</span></div>
+        <div class="stat-box">Rok<span id="year" class="stat-val">1066</span></div>
+    </div>
 
-<div id="panel">
+    <div id="character-info">
+        <h3>Władca: <span id="char-name" style="color: #fff;">Król Bolesław</span></h3>
+        <p>Wiek: <span id="char-age">25</span> | Zdrowie: <span id="char-health">Dobru</span></p>
+    </div>
 
-<p id="year"></p>
+    <div id="event-window">
+        <div id="event-text">Wybierz akcję, aby rozpocząć panowanie...</div>
+        <div id="event-options">
+            <button onclick="nextTurn()">Czekaj na rozwój wypadków (Następny Rok)</button>
+            <button onclick="collectTaxes()">Zbierz nadzwyczajne podatki (+20 złota, -5 prestiżu)</button>
+        </div>
+    </div>
 
-<p>Władca: <span id="ruler"></span></p>
-<p>Złoto: <span id="gold"></span></p>
-<p>Armia: <span id="army"></span></p>
-<p>Prestiż: <span id="prestige"></span></p>
-
-<hr>
-
-<p id="event"></p>
-
-<button onclick="tax()">Pobierz podatki</button>
-<button onclick="train()">Trenuj armię</button>
-<button onclick="war()">Wypowiedz wojnę</button>
-<button onclick="nextTurn()">Następny rok</button>
-
+    <div id="log"></div>
 </div>
 
 <script>
+    // Stan gry
+    let state = {
+        prestige: 0,
+        gold: 100,
+        piety: 0,
+        year: 1066,
+        age: 25,
+        health: 100,
+        name: "Bolesław"
+    };
 
-let year = 1066;
+    const logEl = document.getElementById('log');
 
-let state = {
+    function updateUI() {
+        document.getElementById('prestige').innerText = state.prestige;
+        document.getElementById('gold').innerText = state.gold;
+        document.getElementById('piety').innerText = state.piety;
+        document.getElementById('year').innerText = state.year;
+        document.getElementById('char-age').innerText = state.age;
+        document.getElementById('char-name').innerText = "Król " + state.name;
+        
+        if (state.health < 30) document.getElementById('char-health').innerText = "Konający";
+        else if (state.health < 70) document.getElementById('char-health').innerText = "Słabe";
+        else document.getElementById('char-health').innerText = "Dobre";
+    }
 
-ruler:"Kazimierz",
-gold:100,
-army:50,
-prestige:10
+    function addLog(text) {
+        const entry = document.createElement('div');
+        entry.innerText = `[${state.year}] ${text}`;
+        logEl.prepend(entry);
+    }
 
-};
+    function collectTaxes() {
+        state.gold += 20;
+        state.prestige -= 5;
+        addLog("Chłopi narzekają, ale skarbiec puchnie.");
+        nextTurn();
+    }
 
-function update(){
+    function nextTurn() {
+        state.year++;
+        state.age++;
+        state.prestige += 2;
+        state.health -= Math.floor(Math.random() * 5);
 
-document.getElementById("year").innerText="Rok "+year;
-document.getElementById("ruler").innerText=state.ruler;
-document.getElementById("gold").innerText=state.gold;
-document.getElementById("army").innerText=state.army;
-document.getElementById("prestige").innerText=state.prestige;
+        // Szansa na losowy event
+        if (Math.random() > 0.6) {
+            triggerEvent();
+        } else {
+            addLog("Spokojny rok w królestwie.");
+            updateUI();
+        }
 
-}
+        checkDeath();
+    }
 
-function tax(){
+    const events = [
+        {
+            text: "Sąsiedni książę obraził Twoją żonę na uczcie!",
+            options: [
+                { text: "Wypowiedz wojnę! (-50 złota, +20 prestiżu)", action: () => { state.gold -= 50; state.prestige += 20; } },
+                { text: "Przełknij zniewagę (-10 prestiżu)", action: () => { state.prestige -= 10; } }
+            ]
+        },
+        {
+            text: "Wędrowny mnich prosi o wsparcie dla biednych.",
+            options: [
+                { text: "Podaruj złoto (-30 złota, +15 pobożności)", action: () => { state.gold -= 30; state.piety += 15; } },
+                { text: "Precz z nim!", action: () => { state.piety -= 5; } }
+            ]
+        }
+    ];
 
-state.gold+=20;
+    function triggerEvent() {
+        const ev = events[Math.floor(Math.random() * events.length)];
+        document.getElementById('event-text').innerText = ev.text;
+        const optionsDiv = document.getElementById('event-options');
+        optionsDiv.innerHTML = '';
 
-document.getElementById("event").innerText=
-"Chłopi zapłacili podatki.";
+        ev.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt.text;
+            btn.onclick = () => {
+                opt.action();
+                addLog("Podjęto decyzję.");
+                resetActions();
+            };
+            optionsDiv.appendChild(btn);
+        });
+    }
 
-update();
+    function resetActions() {
+        document.getElementById('event-text').innerText = "Co zamierzasz zrobić, Panie?";
+        document.getElementById('event-options').innerHTML = `
+            <button onclick="nextTurn()">Czekaj na rozwój wypadków (Następny Rok)</button>
+            <button onclick="collectTaxes()">Zbierz nadzwyczajne podatki (+20 złota, -5 prestiżu)</button>
+        `;
+        updateUI();
+    }
 
-}
+    function checkDeath() {
+        if (state.health <= 0 || (state.age > 60 && Math.random() > 0.8)) {
+            alert(`Król ${state.name} zmarł w wieku ${state.age} lat. Niech żyje następca!`);
+            state.age = 16;
+            state.health = 100;
+            state.prestige = Math.floor(state.prestige / 2); // Dziedziczenie połowy prestiżu
+            state.name += " II";
+            addLog("KORONACJA NOWEGO WŁADCY!");
+            updateUI();
+        }
+    }
 
-function train(){
-
-if(state.gold>=10){
-
-state.gold-=10;
-state.army+=10;
-
-document.getElementById("event").innerText=
-"Zrekrutowano nowych żołnierzy.";
-
-}
-
-else{
-
-document.getElementById("event").innerText=
-"Brak złota.";
-
-}
-
-update();
-
-}
-
-function war(){
-
-let enemy = Math.floor(Math.random()*80)+20;
-
-if(state.army>enemy){
-
-state.prestige+=10;
-state.gold+=30;
-
-document.getElementById("event").innerText=
-"Wygrana wojna!";
-
-}
-
-else{
-
-state.army-=10;
-
-document.getElementById("event").innerText=
-"Przegrana bitwa.";
-
-}
-
-update();
-
-}
-
-function randomEvent(){
-
-let r=Math.random();
-
-if(r<0.3){
-
-state.gold+=15;
-return "Kupcy przywieźli bogactwa.";
-
-}
-
-if(r<0.6){
-
-state.prestige+=5;
-return "Turniej rycerski zwiększył prestiż.";
-
-}
-
-state.army+=5;
-return "Ochotnicy dołączyli do armii.";
-
-}
-
-function nextTurn(){
-
-year++;
-
-document.getElementById("event").innerText=randomEvent();
-
-update();
-
-}
-
-update();
-
+    updateUI();
 </script>
 
 </body>
