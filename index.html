@@ -181,6 +181,7 @@
         }
 
         function render() {
+            ensureSixCards();
             if (gameOver) return;
 
             document.getElementById('trump-card').innerHTML = getCardHTML(trumpCard);
@@ -420,7 +421,7 @@
             const attacker = isPlayerAttacker ? playerHand : botHand;
             const defender = isPlayerAttacker ? botHand : playerHand;
         
-            // dobiera atakujący
+            // najpierw dobiera atakujący
             while (deck.length > 0 && attacker.length < 6) {
                 attacker.push(deck.shift());
             }
@@ -428,6 +429,14 @@
             // potem obrońca
             while (deck.length > 0 && defender.length < 6) {
                 defender.push(deck.shift());
+            }
+        }
+
+        function ensureSixCards() {
+            if (deck.length === 0) return;
+        
+            if (playerHand.length < 6 || botHand.length < 6) {
+                performDraw();
             }
         }
 
@@ -453,6 +462,22 @@
             render();
         
             setTimeout(botStartAttack, 600);
+        }
+        function checkWin() {
+        
+            if (gameOver) return;
+        
+            if (playerHand.length === 0 && deck.length === 0) {
+                gameOver = true;
+                showWinScreen("🎉 WYGRAŁEŚ! 🎉");
+                return;
+            }
+        
+            if (botHand.length === 0 && deck.length === 0) {
+                gameOver = true;
+                showWinScreen("🤖 BOT WYGRAŁ – JESTEŚ DURNIEM!");
+                return;
+            }
         }
 
         function startGame() {
