@@ -245,6 +245,10 @@
             const tableRanks = getTableRanks();
 
             if (isPlayerAttacker) {
+                    if (tablePairs.length >= attackLimit()) {
+                        alert("Limit kart w ataku!");
+                        return;
+                    }
                 if (tablePairs.length === 0 || tableRanks.has(card.rank)) {
                     tablePairs.push({attack: card, defense: null});
                     playerHand.splice(index, 1);
@@ -345,7 +349,6 @@
             });
 
             clearTable();
-            isPlayerAttacker = true;
             render();
             performDraw();
             checkWin();
@@ -355,7 +358,7 @@
             const currentRanks = getTableRanks();
             const possibleToAdd = botHand.filter(c => currentRanks.has(c.rank));
 
-            if (possibleToAdd.length > 0 && tablePairs.length < 4) {
+            if (possibleToAdd.length > 0 && tablePairs.length < attackLimit()) {
                 // BOT DORZUCA JEDNĄ KARTĘ (dokładnie jak Ty)
                 possibleToAdd.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
                 const toAdd = possibleToAdd[0];
@@ -368,7 +371,7 @@
             } else {
                 // bot nie chce / nie może dorzucić → kończy atak
                 clearTable();
-                isPlayerAttacker = true;
+                isPlayerAttacker = !isPlayerAttacker;
                 document.getElementById('status').textContent = 'Bot skończył atak – Twoja tura!';
                 render();
                 performDraw();
@@ -398,23 +401,28 @@
         }
 
         function clearTable() { tablePairs = []; }
+        
+        function attackLimit() {
+            const defenderCards = isPlayerAttacker ? botHand.length : playerHand.length;
+            return Math.min(6, defenderCards);
+        }
 
         function performDraw() {
+        
             const attacker = isPlayerAttacker ? playerHand : botHand;
             const defender = isPlayerAttacker ? botHand : playerHand;
-            if (deck.length > 0 && attacker.length < 6) attacker.push(deck.shift());
-            if (deck.length > 0 && defender.length < 6) defender.push(deck.shift());
-        }
-
-        function checkWin() {
-            if (playerHand.length === 0) {
-                gameOver = true;
-                showWinScreen("🎉 WYGRALES! Jesteś mistrzem Durnia! 🎉");
-            } else if (botHand.length === 0) {
-                gameOver = true;
-                showWinScreen("😭 BOT WYGRAŁ<br>Jesteś DURNIOW! 😭");
+        
+            // dobiera atakujący
+            while (deck.length > 0 && attacker.length < 6) {
+                attacker.push(deck.shift());
+            }
+        
+            // potem obrońca
+            while (deck.length > 0 && defender.length < 6) {
+                defender.push(deck.shift());
             }
         }
+
 
         function showWinScreen(text) {
             document.getElementById('win-text').innerHTML = text;
