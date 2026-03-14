@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dureń – Gracz vs Bot (prosta wersja)</title>
+    <title>Dureń – Gracz vs Bot (poprawiona wersja)</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
         body {
             margin: 0;
@@ -64,12 +64,12 @@
             margin: 5px;
             box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
             user-select: none;
         }
         
         .card:hover {
-            transform: scale(1.1);
+            transform: scale(1.12) rotate(2deg);
         }
         
         .card.red { color: #c00; }
@@ -108,6 +108,7 @@
             color: #ffcc00;
             font-size: 30px;
             box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+            transition: all 0.3s ease;
         }
         
         #trump-area {
@@ -128,16 +129,29 @@
             background: #1a5c2f;
             padding: 20px;
             border-radius: 12px;
-            min-height: 160px;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
         
         #attack-zone {
             display: flex;
-            gap: 20px;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .bot-playing {
+            font-size: 14px;
+            color: #ffcc00;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
         
         #player-hand {
@@ -203,24 +217,20 @@
     <div id="game">
         <header>
             <h1>♦ DUREŃ ♦</h1>
-            <p>Gracz vs Bot – uproszczona wersja (1 karta na rundę)</p>
+            <p>Gracz vs Bot – poprawiona wersja (powolne wystawianie kart bota)</p>
         </header>
 
         <div class="area">
-            <!-- Trump -->
             <div id="trump-area">
                 <span>ATUT:</span>
                 <div id="trump-card" class="card"></div>
             </div>
-            
-            <!-- Deck -->
             <div id="deck-area">
                 <span>TALIA: <span id="deck-count">24</span></span>
                 <div class="card-back">🂠</div>
             </div>
         </div>
 
-        <!-- Bot -->
         <div class="info">
             <strong>BOT ma <span id="bot-count">6</span> kart</strong>
         </div>
@@ -228,12 +238,10 @@
             <div id="bot-hand" style="display:flex; justify-content:center; gap:5px;"></div>
         </div>
 
-        <!-- Stół -->
         <div id="table">
             <div id="status">Twoja tura – zagraj kartę ataku</div>
             
             <div id="attack-zone">
-                <!-- Tu pojawia się karta ataku -->
                 <div id="current-attack" style="display:none; text-align:center;">
                     <div style="font-size:14px; margin-bottom:5px;">KARTA ATAKU</div>
                     <div id="attack-card-display" class="card"></div>
@@ -241,7 +249,6 @@
             </div>
         </div>
 
-        <!-- Ręka gracza -->
         <div id="player-hand"></div>
 
         <div style="text-align:center;">
@@ -256,7 +263,6 @@
     </div>
 
     <script>
-        // ==================== DANE GRY ====================
         const ranks = ['6','7','8','9','10','J','Q','K','A'];
         const suits = ['♥','♦','♣','♠'];
         const rankValues = {'6':0,'7':1,'8':2,'9':3,'10':4,'J':5,'Q':6,'K':7,'A':8};
@@ -270,7 +276,6 @@
         let isPlayerAttacker = true;
         let gameOver = false;
 
-        // ==================== TWORZENIE TALII ====================
         function createDeck() {
             deck = [];
             for (let suit of suits) {
@@ -279,15 +284,11 @@
                 }
             }
             shuffle(deck);
-            
-            // Rozdanie
             playerHand = deck.splice(0, 6);
             botHand = deck.splice(0, 6);
-            
-            // Atut – ostatnia karta
             trumpCard = deck.pop();
             trumpSuit = trumpCard.suit;
-            deck.push(trumpCard); // wracamy na spód talii (będzie ostatnia do wzięcia)
+            deck.push(trumpCard);
         }
 
         function shuffle(array) {
@@ -297,16 +298,13 @@
             }
         }
 
-        // ==================== FUNKCJE KART ====================
         function canBeat(attack, defense) {
+            if (!attack || !defense) return false;
             if (attack.suit === defense.suit) {
                 return rankValues[defense.rank] > rankValues[attack.rank];
             }
             if (defense.suit === trumpSuit) {
-                if (attack.suit === trumpSuit) {
-                    return rankValues[defense.rank] > rankValues[attack.rank];
-                }
-                return true;
+                return attack.suit !== trumpSuit || rankValues[defense.rank] > rankValues[attack.rank];
             }
             return false;
         }
@@ -322,25 +320,20 @@
             `;
         }
 
-        // ==================== RENDEROWANIE ====================
         function render() {
             if (gameOver) return;
             
-            // Trump
-            const trumpDiv = document.getElementById('trump-card');
-            trumpDiv.innerHTML = getCardHTML(trumpCard);
-            
-            // Talia
+            document.getElementById('trump-card').innerHTML = getCardHTML(trumpCard);
             document.getElementById('deck-count').textContent = deck.length;
-            
-            // Bot
             document.getElementById('bot-count').textContent = botHand.length;
+
+            // Bot hand (tylko backi)
             const botHandDiv = document.getElementById('bot-hand');
             botHandDiv.innerHTML = '';
             for (let i = 0; i < Math.min(botHand.length, 6); i++) {
                 botHandDiv.innerHTML += `<div class="card-back">🂠</div>`;
             }
-            
+
             // Ręka gracza
             const playerHandDiv = document.getElementById('player-hand');
             playerHandDiv.innerHTML = '';
@@ -350,8 +343,8 @@
                 cardEl.onclick = () => handlePlayerClick(index);
                 playerHandDiv.appendChild(cardEl);
             });
-            
-            // Karta ataku (jeśli jest)
+
+            // Karta ataku
             const attackZone = document.getElementById('current-attack');
             const attackCardDisplay = document.getElementById('attack-card-display');
             if (currentAttackCard) {
@@ -360,69 +353,73 @@
             } else {
                 attackZone.style.display = 'none';
             }
-            
+
             // Status
             const status = document.getElementById('status');
             if (isPlayerAttacker) {
                 status.textContent = 'Twoja tura – kliknij kartę, żeby zaatakować';
-            } else {
+            } else if (currentAttackCard) {
                 status.textContent = 'Bot atakuje! Wybierz kartę do obrony';
+            } else {
+                status.textContent = 'Bot myśli...';
             }
         }
 
-        // ==================== LOGIKA GRY ====================
         function handlePlayerClick(index) {
             if (gameOver) return;
-            
+
+            // Zabezpieczenie przed klikaniem w złym momencie
+            if (!isPlayerAttacker && !currentAttackCard) {
+                return; // czekamy na atak bota
+            }
+
             if (isPlayerAttacker) {
                 // Gracz atakuje
                 currentAttackCard = playerHand[index];
                 playerHand.splice(index, 1);
                 render();
-                setTimeout(botDefend, 400);
+                setTimeout(botDefend, 500);
             } else {
                 // Gracz broni się
                 const chosenCard = playerHand[index];
                 if (canBeat(currentAttackCard, chosenCard)) {
-                    // Udana obrona
                     playerHand.splice(index, 1);
                     currentAttackCard = null;
-                    isPlayerAttacker = true; // gracz teraz atakuje
+                    isPlayerAttacker = true;
                     performDraw();
                     checkWin();
                     render();
                 } else {
-                    alert("❌ Ta karta nie bije! Wybierz inną lub weź kartę.");
+                    alert("❌ Ta karta nie bije ataku!\nWybierz inną lub kliknij WEŹ KARTĘ ATAKU");
                 }
             }
         }
 
         function botDefend() {
-            if (!currentAttackCard) return;
-            
-            // Bot szuka najsłabszej karty, która bije
+            if (!currentAttackCard || gameOver) return;
+
             let candidates = botHand.filter(c => canBeat(currentAttackCard, c));
             
             if (candidates.length > 0) {
-                // Wybiera najsłabszą
                 candidates.sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
                 const beaterIndex = botHand.indexOf(candidates[0]);
-                botHand.splice(beaterIndex, 1);
-                
-                // Odrzucamy obie karty
-                currentAttackCard = null;
-                isPlayerAttacker = false; // bot teraz atakuje
-                performDraw();
-                checkWin();
-                render();
-                
-                // Bot zaraz zaatakuje
-                setTimeout(botAttack, 600);
+                botHand.splice(beaterIndex, 1);   // usuwamy kartę obrony
+
+                render(); // najpierw widać, że bot stracił kartę
+
+                setTimeout(() => {
+                    currentAttackCard = null;
+                    isPlayerAttacker = false;
+                    performDraw();
+                    checkWin();
+                    render();
+                    setTimeout(botAttack, 400);
+                }, 800);
             } else {
-                // Bot nie może – bierze kartę
+                // Bot nie może bić – bierze kartę
                 botHand.push(currentAttackCard);
                 currentAttackCard = null;
-                isPlayerAttacker = true; // gracz nadal atakuje
+                isPlayerAttacker = true;
                 performDraw();
                 checkWin();
                 render();
@@ -430,12 +427,11 @@
         }
 
         function botAttack() {
-            if (gameOver || isPlayerAttacker) return;
-            
-            // Bot wybiera najsłabszą kartę (najpierw nie-atutową)
+            if (gameOver || isPlayerAttacker || currentAttackCard) return;
+
+            // Wybór karty przez bota
             let nonTrump = botHand.filter(c => c.suit !== trumpSuit);
             let chosen;
-            
             if (nonTrump.length > 0) {
                 nonTrump.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
                 chosen = nonTrump[0];
@@ -443,36 +439,38 @@
                 botHand.sort((a,b) => rankValues[a.rank] - rankValues[b.rank]);
                 chosen = botHand[0];
             }
-            
+
             const index = botHand.indexOf(chosen);
-            currentAttackCard = botHand.splice(index, 1)[0];
-            
-            render();
+            const playedCard = botHand.splice(index, 1)[0];
+
+            render(); // najpierw widać, że karta znika z ręki bota
+
+            setTimeout(() => {
+                currentAttackCard = playedCard;
+                render();
+            }, 800);
         }
 
         function takeCard() {
             if (gameOver || isPlayerAttacker || !currentAttackCard) return;
-            
-            // Gracz bierze kartę ataku
+
             playerHand.push(currentAttackCard);
             currentAttackCard = null;
-            isPlayerAttacker = false; // bot nadal atakuje
+            isPlayerAttacker = false;
             performDraw();
             checkWin();
             render();
+
+            // Po wzięciu karty bot natychmiast atakuje (z opóźnieniem)
+            setTimeout(botAttack, 600);
         }
 
         function performDraw() {
-            // Najpierw atakujący dobiera, potem obrońca (do 6 kart)
             const attackerHand = isPlayerAttacker ? playerHand : botHand;
             const defenderHand = isPlayerAttacker ? botHand : playerHand;
             
-            if (deck.length > 0 && attackerHand.length < 6) {
-                attackerHand.push(deck.shift());
-            }
-            if (deck.length > 0 && defenderHand.length < 6) {
-                defenderHand.push(deck.shift());
-            }
+            if (deck.length > 0 && attackerHand.length < 6) attackerHand.push(deck.shift());
+            if (deck.length > 0 && defenderHand.length < 6) defenderHand.push(deck.shift());
         }
 
         function checkWin() {
@@ -486,12 +484,10 @@
         }
 
         function showWinScreen(text) {
-            const screen = document.getElementById('win-screen');
             document.getElementById('win-text').innerHTML = text;
-            screen.style.display = 'flex';
+            document.getElementById('win-screen').style.display = 'flex';
         }
 
-        // ==================== START I RESTART ====================
         function startGame() {
             createDeck();
             currentAttackCard = null;
@@ -499,18 +495,12 @@
             gameOver = false;
             document.getElementById('win-screen').style.display = 'none';
             render();
-            
-            // Pierwsza akcja bota jeśli trzeba (ale gracz zaczyna)
-            setTimeout(() => {
-                if (!isPlayerAttacker) botAttack();
-            }, 800);
         }
 
         function restartGame() {
             startGame();
         }
 
-        // ==================== INICJACJA ====================
         window.onload = function() {
             startGame();
         };
