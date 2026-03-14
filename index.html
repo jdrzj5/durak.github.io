@@ -2,85 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symulator Parlamentu</title>
+    <title>Symulator Sejmu 460</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; }
-        h1 { color: #333; }
+        body { font-family: 'Inter', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
         
-        #parliament-container {
+        #parliament-canvas {
             position: relative;
-            width: 800px;
-            height: 450px;
-            background: white;
-            border-radius: 400px 400px 0 0;
-            border: 2px solid #ccc;
-            margin-top: 50px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 900px;
+            height: 500px;
+            background: #34495e;
+            border-radius: 450px 450px 20px 20px;
+            border: 4px solid #1a252f;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            margin: 20px 0;
         }
 
         .seat {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background-color: #ddd;
-            transition: all 0.3s ease;
+            background-color: #555;
+            transition: transform 0.2s, background-color 0.5s;
+            cursor: pointer;
         }
+
+        .seat:hover { transform: scale(1.5); z-index: 10; border: 1px solid white; }
 
         #controls {
-            margin-top: 30px;
+            background: #ecf0f1;
             padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
             display: flex;
             gap: 10px;
+            color: #2c3e50;
             flex-wrap: wrap;
-            max-width: 800px;
+            justify-content: center;
         }
-
-        input, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #2c3e50; color: white; cursor: pointer; font-weight: bold; }
-        button:hover { background: #34495e; }
 
         #legend {
-            margin-top: 20px;
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
-            font-size: 0.9em;
+            margin-bottom: 20px;
+            width: 900px;
         }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+        .party-card {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-left: 5px solid;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Sala Posiedzeń (460 miejsc)</h1>
+    <h1>System Zarządzania Ławami Poselskimi</h1>
 
-    <div id="parliament-container">
-        </div>
+    <div id="parliament-canvas"></div>
 
-    <div id="legend" id="party-legend">
-        </div>
+    <div id="legend"></div>
 
     <div id="controls">
-        <input type="text" id="partyName" placeholder="Nazwa partii">
-        <input type="number" id="partySeats" placeholder="Liczba posłów">
-        <input type="color" id="partyColor" value="#ff0000">
-        <button onclick="addNewParty()">Dodaj Stronnictwo</button>
-        <button onclick="resetParliament()" style="background: #e74c3c;">Reset</button>
+        <input type="text" id="pName" placeholder="Nazwa partii">
+        <input type="number" id="pSeats" placeholder="Liczba miejsc" style="width: 100px;">
+        <input type="color" id="pColor" value="#3498db">
+        <button onclick="addParty()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Dodaj do Parlamentu</button>
+        <button onclick="clearAll()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Wyczyść salę</button>
     </div>
 
     <script>
-        const TOTAL_SEATS = 460;
-        const container = document.getElementById('parliament-container');
+        const canvas = document.getElementById('parliament-canvas');
         const legend = document.getElementById('legend');
-        let parties = [];
-
-        // Przykładowy rozkład na start (Polska scena polityczna - poglądowo)
-        const initialParties = [
+        const TOTAL_SEATS = 460;
+        
+        let parties = [
             { name: "Lewica", seats: 26, color: "#ce1c24" },
             { name: "Koalicja Obywatelska", seats: 157, color: "#f7a500" },
             { name: "Trzecia Droga", seats: 64, color: "#ffd700" },
@@ -89,89 +86,94 @@
             { name: "Niezrzeszeni", seats: 5, color: "#808080" }
         ];
 
-        function init() {
-            parties = [...initialParties];
-            renderParliament();
+        function generateSeatPositions() {
+            const positions = [];
+            const rowConfigs = [
+                { radius: 120, count: 20 },
+                { radius: 150, count: 25 },
+                { radius: 180, count: 30 },
+                { radius: 210, count: 35 },
+                { radius: 240, count: 40 },
+                { radius: 270, count: 45 },
+                { radius: 300, count: 50 },
+                { radius: 330, count: 60 },
+                { radius: 360, count: 70 },
+                { radius: 390, count: 85 }
+            ];
+
+            rowConfigs.forEach(row => {
+                for (let i = 0; i < row.count; i++) {
+                    if (positions.length >= TOTAL_SEATS) break;
+                    
+                    // Kąt od 0 do PI (półkole)
+                    // Dodajemy mały margines (0.1), żeby fotele nie dotykały samej ziemi
+                    const angle = Math.PI - (Math.PI * (i / (row.count - 1)));
+                    
+                    const x = 450 + row.radius * Math.cos(angle);
+                    const y = 470 - row.radius * Math.sin(angle);
+                    
+                    positions.push({ x, y });
+                }
+            });
+            return positions;
         }
 
-        function renderParliament() {
-            container.innerHTML = '';
+        function draw() {
+            canvas.innerHTML = '';
             legend.innerHTML = '';
-            
-            // Generowanie współrzędnych dla 460 miejsc w łukach
-            const seatsCoords = [];
-            const rows = 12; // Liczba rzędów
-            const seatsPerRow = Math.floor(TOTAL_SEATS / rows);
+            const coords = generateSeatPositions();
+            let seatCounter = 0;
 
-            for (let r = 0; r < rows; r++) {
-                const radius = 100 + (r * 25); // Promień każdego rzędu
-                const rowSeatsCount = seatsPerRow + (r * 2); // Więcej miejsc w zewnętrznych rzędach
-                
-                for (let s = 0; s < rowSeatsCount; s++) {
-                    if (seatsCoords.length >= TOTAL_SEATS) break;
-                    
-                    // Kąt od 180 (lewa) do 0 (prawa) stopni
-                    const angle = Math.PI - (Math.PI * (s / (rowSeatsCount - 1)));
-                    const x = 400 + radius * Math.cos(angle);
-                    const y = 420 - radius * Math.sin(angle);
-                    
-                    seatsCoords.push({ x, y });
-                }
-            }
-
-            // Przypisywanie partii do miejsc
-            let currentSeatIdx = 0;
             parties.forEach(party => {
-                // Tworzenie legendy
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `<div class="dot" style="background:${party.color}"></div> ${party.name} (${party.seats})`;
-                legend.appendChild(item);
+                // Legenda
+                const card = document.createElement('div');
+                card.className = 'party-card';
+                card.style.borderLeftColor = party.color;
+                card.innerHTML = `<strong>${party.name}</strong><br>${party.seats} posłów`;
+                legend.appendChild(card);
 
-                // Tworzenie foteli
+                // Fotele
                 for (let i = 0; i < party.seats; i++) {
-                    if (currentSeatIdx >= TOTAL_SEATS) break;
+                    if (seatCounter >= TOTAL_SEATS) break;
                     
-                    const seatDiv = document.createElement('div');
-                    seatDiv.className = 'seat';
-                    seatDiv.style.left = `${seatsCoords[currentSeatIdx].x}px`;
-                    seatDiv.style.top = `${seatsCoords[currentSeatIdx].y}px`;
-                    seatDiv.style.backgroundColor = party.color;
-                    seatDiv.title = party.name;
-                    container.appendChild(seatDiv);
-                    currentSeatIdx++;
+                    const s = document.createElement('div');
+                    s.className = 'seat';
+                    s.style.left = `${coords[seatCounter].x - 5}px`;
+                    s.style.top = `${coords[seatCounter].y - 5}px`;
+                    s.style.backgroundColor = party.color;
+                    s.title = `${party.name} - Poseł nr ${i + 1}`;
+                    canvas.appendChild(s);
+                    seatCounter++;
                 }
             });
 
-            // Pozostałe wolne miejsca (jeśli suma < 460)
-            for (let i = currentSeatIdx; i < TOTAL_SEATS; i++) {
-                const seatDiv = document.createElement('div');
-                seatDiv.className = 'seat';
-                seatDiv.style.left = `${seatsCoords[i].x}px`;
-                seatDiv.style.top = `${seatsCoords[i].y}px`;
-                container.appendChild(seatDiv);
+            // Wypełnij resztę pustymi miejscami
+            for (let i = seatCounter; i < TOTAL_SEATS; i++) {
+                const s = document.createElement('div');
+                s.className = 'seat';
+                s.style.left = `${coords[i].x - 5}px`;
+                s.style.top = `${coords[i].y - 5}px`;
+                canvas.appendChild(s);
             }
         }
 
-        function addNewParty() {
-            const name = document.getElementById('partyName').value;
-            const seats = parseInt(document.getElementById('partySeats').value);
-            const color = document.getElementById('partyColor').value;
+        function addParty() {
+            const name = document.getElementById('pName').value;
+            const seats = parseInt(document.getElementById('pSeats').value);
+            const color = document.getElementById('pColor').value;
 
-            if (name && seats > 0) {
+            if (name && !isNaN(seats)) {
                 parties.push({ name, seats, color });
-                renderParliament();
-            } else {
-                alert("Podaj poprawną nazwę i liczbę miejsc!");
+                draw();
             }
         }
 
-        function resetParliament() {
+        function clearAll() {
             parties = [];
-            renderParliament();
+            draw();
         }
 
-        init();
+        draw();
     </script>
 </body>
 </html>
