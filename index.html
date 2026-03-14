@@ -2,163 +2,176 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Mini-Dynasty Sim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symulator Parlamentu</title>
     <style>
-        body { background: #2c2116; color: #e0d0b0; font-family: 'Georgia', serif; display: flex; justify-content: center; padding: 20px; }
-        #game-container { width: 600px; background: #3d2f1f; border: 4px double #8b7355; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        h1, h2 { text-align: center; color: #d4af37; text-transform: uppercase; letter-spacing: 2px; }
-        .stats { display: flex; justify-content: space-around; background: #1a140e; padding: 10px; border: 1px solid #8b7355; margin-bottom: 20px; }
-        .stat-box { text-align: center; }
-        .stat-val { display: block; font-weight: bold; color: #fff; }
-        #event-window { background: #4e3d2a; border: 2px solid #d4af37; padding: 15px; margin-top: 20px; min-height: 150px; }
-        button { background: #8b0000; color: white; border: 1px solid #d4af37; padding: 8px 15px; cursor: pointer; margin: 5px; width: 100%; font-family: 'Georgia', serif; }
-        button:hover { background: #a50000; }
-        #log { font-size: 0.9em; height: 100px; overflow-y: auto; background: #1a140e; padding: 10px; margin-top: 10px; border: 1px solid #8b7355; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #333; }
+        
+        #parliament-container {
+            position: relative;
+            width: 800px;
+            height: 450px;
+            background: white;
+            border-radius: 400px 400px 0 0;
+            border: 2px solid #ccc;
+            margin-top: 50px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .seat {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+            transition: all 0.3s ease;
+        }
+
+        #controls {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            max-width: 800px;
+        }
+
+        input, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #2c3e50; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #34495e; }
+
+        #legend {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <h1>Dynasty Manager</h1>
-    
-    <div class="stats">
-        <div class="stat-box">Prestiż<span id="prestige" class="stat-val">0</span></div>
-        <div class="stat-box">Złoto<span id="gold" class="stat-val">100</span></div>
-        <div class="stat-box">Pobożność<span id="piety" class="stat-val">0</span></div>
-        <div class="stat-box">Rok<span id="year" class="stat-val">1066</span></div>
-    </div>
+    <h1>Sala Posiedzeń (460 miejsc)</h1>
 
-    <div id="character-info">
-        <h3>Władca: <span id="char-name" style="color: #fff;">Król Bolesław</span></h3>
-        <p>Wiek: <span id="char-age">25</span> | Zdrowie: <span id="char-health">Dobru</span></p>
-    </div>
-
-    <div id="event-window">
-        <div id="event-text">Wybierz akcję, aby rozpocząć panowanie...</div>
-        <div id="event-options">
-            <button onclick="nextTurn()">Czekaj na rozwój wypadków (Następny Rok)</button>
-            <button onclick="collectTaxes()">Zbierz nadzwyczajne podatki (+20 złota, -5 prestiżu)</button>
+    <div id="parliament-container">
         </div>
+
+    <div id="legend" id="party-legend">
+        </div>
+
+    <div id="controls">
+        <input type="text" id="partyName" placeholder="Nazwa partii">
+        <input type="number" id="partySeats" placeholder="Liczba posłów">
+        <input type="color" id="partyColor" value="#ff0000">
+        <button onclick="addNewParty()">Dodaj Stronnictwo</button>
+        <button onclick="resetParliament()" style="background: #e74c3c;">Reset</button>
     </div>
 
-    <div id="log"></div>
-</div>
+    <script>
+        const TOTAL_SEATS = 460;
+        const container = document.getElementById('parliament-container');
+        const legend = document.getElementById('legend');
+        let parties = [];
 
-<script>
-    // Stan gry
-    let state = {
-        prestige: 0,
-        gold: 100,
-        piety: 0,
-        year: 1066,
-        age: 25,
-        health: 100,
-        name: "Bolesław"
-    };
+        // Przykładowy rozkład na start (Polska scena polityczna - poglądowo)
+        const initialParties = [
+            { name: "Lewica", seats: 26, color: "#ce1c24" },
+            { name: "Koalicja Obywatelska", seats: 157, color: "#f7a500" },
+            { name: "Trzecia Droga", seats: 64, color: "#ffd700" },
+            { name: "PiS", seats: 190, color: "#263778" },
+            { name: "Konfederacja", seats: 18, color: "#122744" },
+            { name: "Niezrzeszeni", seats: 5, color: "#808080" }
+        ];
 
-    const logEl = document.getElementById('log');
-
-    function updateUI() {
-        document.getElementById('prestige').innerText = state.prestige;
-        document.getElementById('gold').innerText = state.gold;
-        document.getElementById('piety').innerText = state.piety;
-        document.getElementById('year').innerText = state.year;
-        document.getElementById('char-age').innerText = state.age;
-        document.getElementById('char-name').innerText = "Król " + state.name;
-        
-        if (state.health < 30) document.getElementById('char-health').innerText = "Konający";
-        else if (state.health < 70) document.getElementById('char-health').innerText = "Słabe";
-        else document.getElementById('char-health').innerText = "Dobre";
-    }
-
-    function addLog(text) {
-        const entry = document.createElement('div');
-        entry.innerText = `[${state.year}] ${text}`;
-        logEl.prepend(entry);
-    }
-
-    function collectTaxes() {
-        state.gold += 20;
-        state.prestige -= 5;
-        addLog("Chłopi narzekają, ale skarbiec puchnie.");
-        nextTurn();
-    }
-
-    function nextTurn() {
-        state.year++;
-        state.age++;
-        state.prestige += 2;
-        state.health -= Math.floor(Math.random() * 5);
-
-        // Szansa na losowy event
-        if (Math.random() > 0.6) {
-            triggerEvent();
-        } else {
-            addLog("Spokojny rok w królestwie.");
-            updateUI();
+        function init() {
+            parties = [...initialParties];
+            renderParliament();
         }
 
-        checkDeath();
-    }
+        function renderParliament() {
+            container.innerHTML = '';
+            legend.innerHTML = '';
+            
+            // Generowanie współrzędnych dla 460 miejsc w łukach
+            const seatsCoords = [];
+            const rows = 12; // Liczba rzędów
+            const seatsPerRow = Math.floor(TOTAL_SEATS / rows);
 
-    const events = [
-        {
-            text: "Sąsiedni książę obraził Twoją żonę na uczcie!",
-            options: [
-                { text: "Wypowiedz wojnę! (-50 złota, +20 prestiżu)", action: () => { state.gold -= 50; state.prestige += 20; } },
-                { text: "Przełknij zniewagę (-10 prestiżu)", action: () => { state.prestige -= 10; } }
-            ]
-        },
-        {
-            text: "Wędrowny mnich prosi o wsparcie dla biednych.",
-            options: [
-                { text: "Podaruj złoto (-30 złota, +15 pobożności)", action: () => { state.gold -= 30; state.piety += 15; } },
-                { text: "Precz z nim!", action: () => { state.piety -= 5; } }
-            ]
+            for (let r = 0; r < rows; r++) {
+                const radius = 100 + (r * 25); // Promień każdego rzędu
+                const rowSeatsCount = seatsPerRow + (r * 2); // Więcej miejsc w zewnętrznych rzędach
+                
+                for (let s = 0; s < rowSeatsCount; s++) {
+                    if (seatsCoords.length >= TOTAL_SEATS) break;
+                    
+                    // Kąt od 180 (lewa) do 0 (prawa) stopni
+                    const angle = Math.PI - (Math.PI * (s / (rowSeatsCount - 1)));
+                    const x = 400 + radius * Math.cos(angle);
+                    const y = 420 - radius * Math.sin(angle);
+                    
+                    seatsCoords.push({ x, y });
+                }
+            }
+
+            // Przypisywanie partii do miejsc
+            let currentSeatIdx = 0;
+            parties.forEach(party => {
+                // Tworzenie legendy
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="dot" style="background:${party.color}"></div> ${party.name} (${party.seats})`;
+                legend.appendChild(item);
+
+                // Tworzenie foteli
+                for (let i = 0; i < party.seats; i++) {
+                    if (currentSeatIdx >= TOTAL_SEATS) break;
+                    
+                    const seatDiv = document.createElement('div');
+                    seatDiv.className = 'seat';
+                    seatDiv.style.left = `${seatsCoords[currentSeatIdx].x}px`;
+                    seatDiv.style.top = `${seatsCoords[currentSeatIdx].y}px`;
+                    seatDiv.style.backgroundColor = party.color;
+                    seatDiv.title = party.name;
+                    container.appendChild(seatDiv);
+                    currentSeatIdx++;
+                }
+            });
+
+            // Pozostałe wolne miejsca (jeśli suma < 460)
+            for (let i = currentSeatIdx; i < TOTAL_SEATS; i++) {
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'seat';
+                seatDiv.style.left = `${seatsCoords[i].x}px`;
+                seatDiv.style.top = `${seatsCoords[i].y}px`;
+                container.appendChild(seatDiv);
+            }
         }
-    ];
 
-    function triggerEvent() {
-        const ev = events[Math.floor(Math.random() * events.length)];
-        document.getElementById('event-text').innerText = ev.text;
-        const optionsDiv = document.getElementById('event-options');
-        optionsDiv.innerHTML = '';
+        function addNewParty() {
+            const name = document.getElementById('partyName').value;
+            const seats = parseInt(document.getElementById('partySeats').value);
+            const color = document.getElementById('partyColor').value;
 
-        ev.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.innerText = opt.text;
-            btn.onclick = () => {
-                opt.action();
-                addLog("Podjęto decyzję.");
-                resetActions();
-            };
-            optionsDiv.appendChild(btn);
-        });
-    }
-
-    function resetActions() {
-        document.getElementById('event-text').innerText = "Co zamierzasz zrobić, Panie?";
-        document.getElementById('event-options').innerHTML = `
-            <button onclick="nextTurn()">Czekaj na rozwój wypadków (Następny Rok)</button>
-            <button onclick="collectTaxes()">Zbierz nadzwyczajne podatki (+20 złota, -5 prestiżu)</button>
-        `;
-        updateUI();
-    }
-
-    function checkDeath() {
-        if (state.health <= 0 || (state.age > 60 && Math.random() > 0.8)) {
-            alert(`Król ${state.name} zmarł w wieku ${state.age} lat. Niech żyje następca!`);
-            state.age = 16;
-            state.health = 100;
-            state.prestige = Math.floor(state.prestige / 2); // Dziedziczenie połowy prestiżu
-            state.name += " II";
-            addLog("KORONACJA NOWEGO WŁADCY!");
-            updateUI();
+            if (name && seats > 0) {
+                parties.push({ name, seats, color });
+                renderParliament();
+            } else {
+                alert("Podaj poprawną nazwę i liczbę miejsc!");
+            }
         }
-    }
 
-    updateUI();
-</script>
+        function resetParliament() {
+            parties = [];
+            renderParliament();
+        }
 
+        init();
+    </script>
 </body>
 </html>
