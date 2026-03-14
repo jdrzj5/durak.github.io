@@ -222,6 +222,14 @@
             btnDiv.innerHTML = '';
 
             if (isPlayerAttacker) {
+                if (tablePairs.length > 0 && tablePairs.every(p => p.defense !== null)) {
+
+                    const endBtn = document.createElement('button');
+                    endBtn.textContent = 'KONIEC ATAKU';
+                    endBtn.onclick = playerEndAttack;
+                
+                    btnDiv.appendChild(endBtn);
+                }
                 status.textContent = tablePairs.length === 0 
                     ? 'Twoja tura – kliknij kartę z ręki (dowolną)'
                     : tablePairs.every(p => p.defense !== null)
@@ -427,6 +435,25 @@
         function showWinScreen(text) {
             document.getElementById('win-text').innerHTML = text;
             document.getElementById('win-screen').style.display = 'flex';
+        }
+
+        function playerEndAttack() {
+
+            if (!tablePairs.every(p => p.defense !== null)) {
+                alert("Bot nie obronił jeszcze wszystkich kart!");
+                return;
+            }
+        
+            clearTable();
+        
+            // zmiana ról
+            isPlayerAttacker = false;
+        
+            performDraw();
+            render();
+            checkWin();
+        
+            setTimeout(botStartAttack, 600);
         }
 
         function startGame() {
