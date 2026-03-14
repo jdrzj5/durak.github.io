@@ -139,6 +139,7 @@
         let tablePairs = [];
         let isPlayerAttacker = true;
         let gameOver = false;
+        let attackFinished = false;
         let selectedPairIndex = -1;
 
         function createDeck() {
@@ -181,7 +182,6 @@
         }
 
         function render() {
-            ensureSixCards();
             if (gameOver) return;
 
             document.getElementById('trump-card').innerHTML = getCardHTML(trumpCard);
@@ -249,11 +249,13 @@
         }
 
         function handlePlayerCardClick(index) {
+            if (attackFinished) return;
             if (gameOver) return;
             const card = playerHand[index];
             const tableRanks = getTableRanks();
 
             if (isPlayerAttacker) {
+                attackFinished = false;
                     if (tablePairs.length >= attackLimit()) {
                         alert("Limit kart w ataku!");
                         return;
@@ -289,10 +291,10 @@
 
         // ==================== BOT ATAKUJE – TYLKO JEDNĄ KARTĘ NA RAZ ====================
         function botStartAttack() {
-            if (gameOver) return;
+            if (gameOver || playerHand.length === 0 && deck.length === 0) return;
             document.getElementById('status').textContent = 'Bot atakuje jedną kartą...';
             tablePairs = [];
-
+            attackFinished = false;
             // BOT ZAWSZE ZACZYNA OD JEDNEJ KARTY
             let possible = botHand.filter(c => c.suit !== trumpSuit);
             if (possible.length === 0) possible = botHand;
@@ -362,6 +364,7 @@
             
             performDraw();
             render();
+            ensureSixCards();
             checkWin();
 
         }
@@ -386,6 +389,7 @@
                 isPlayerAttacker = !isPlayerAttacker;
                 document.getElementById('status').textContent = 'Bot skończył atak – Twoja tura!';
                 render();
+                ensureSixCards();
                 performDraw();
                 checkWin();
             }
@@ -411,6 +415,7 @@
         performDraw();
         render();
         checkWin();
+        ensureSixCards();
         
         // uruchom turę bota
         setTimeout(botStartAttack, 600);
@@ -477,16 +482,17 @@
         
             if (playerHand.length === 0 && deck.length === 0) {
                 gameOver = true;
-                showWinScreen("🎉 WYGRAŁEŚ! 🎉");
+                showWinScreen("🎉 WYGRAŁEŚ!");
                 return;
             }
         
             if (botHand.length === 0 && deck.length === 0) {
                 gameOver = true;
-                showWinScreen("🤖 BOT WYGRAŁ – JESTEŚ DURNIEM!");
+                showWinScreen("🤖 BOT WYGRAŁ – JESTEŚ DURNIEM");
                 return;
             }
         }
+
 
         function startGame() {
             createDeck();
