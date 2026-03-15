@@ -2,24 +2,40 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Symulator Sejmu 460</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dureń</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="game">
+        <header>
+            <h1>♦ DUREŃ ♦</h1>
+            <p></p>
+        </header>
 
-    <h1>System Zarządzania Ławami Poselskimi</h1>
+        <div class="area">
+            <div id="trump-area"><span>ATUT:</span><div id="trump-card" class="card"></div></div>
+            <div id="deck-area"><span>TALIA: <span id="deck-count">24</span></span><div class="card-back">🂠</div></div>
+        </div>
 
-    <div id="parliament-canvas"></div>
+        <div class="info"><strong>BOT ma <span id="bot-count">6</span> kart</strong></div>
+        <div style="text-align:center; margin:10px;"><div id="bot-hand" style="display:flex; justify-content:center; gap:5px;"></div></div>
 
-    <div id="legend"></div>
+        <div id="table">
+            <div id="status">Twoja tura</div>
+            <div id="table-pairs"></div>
+        </div>
 
-    <div id="controls">
-        <input type="text" id="pName" placeholder="Nazwa partii">
-        <input type="number" id="pSeats" placeholder="Liczba miejsc" style="width: 100px;">
-        <input type="color" id="pColor" value="#3498db">
-        <button onclick="addParty()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Dodaj do Parlamentu</button>
-        <button onclick="clearAll()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Wyczyść salę</button>
+        <div id="player-hand"></div>
+
+        <div style="text-align:center;" id="action-buttons"></div>
     </div>
+
+    <div id="win-screen" class="win">
+        <div id="win-text"></div>
+        <button onclick="restartGame()" style="margin-top:30px; padding:15px 40px; font-size:20px;">JESZCZE RAZ</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
